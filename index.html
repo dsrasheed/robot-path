@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Waypoint Visualizer</title>
+    <meta name="author" content="Daniyaal Rasheed">
+    <link href="style.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+    <div id="field-container">
+        <div id="field" scale="1.5"></div>
+        <div class="field-controls">
+            <div class="mode-radio">
+                <input type="radio" name="field-mode" value="change" checked/>
+                <div class="mode-radio__content">Change</div>
+            </div>
+            <div class="mode-radio">
+                <input type="radio" name="field-mode" value="delete"/>
+                <div class="mode-radio__content">Delete</div>
+            </div>
+            <button id="export-btn">Export</button>
+            <button id="import-btn">Import</button>
+            <button id="config-btn">Config Robot</button>
+            <button id="clear-btn">Clear</button>
+        </div>
+    </div>
+    <table id="wp-table">
+        <thead>
+            <tr class-"wp-tr">
+                <td class="wp-td">X (in)</td>
+                <td class="wp-td">Y (in) </td>
+                <td class="wp-td">Heading (deg)</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script src="js/lib/concrete.js"></script>
+    <script src="js/lib/Smooth.js"></script>
+    <script src="js/field.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
