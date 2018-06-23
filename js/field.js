@@ -289,17 +289,35 @@ Object.assign(Field.prototype, {
      * @param {MouseEvent} evt
      */
     onMouseUp(evt) {
-        var waypoints = this.waypoints;
+        var selected = this.selected,
+            waypoints = this.waypoints;
 
-        if (this.selected != null) {
-            this.onWaypointChanged(this.selected, waypoints.indexOf(this.selected));
-            let index = waypoints.indexOf(this.selected) - 1;
-            if (index >= 0) {
-                this.onWaypointChanged(waypoints[index], index);
-            }   
+        if (selected != null) {
+            let i = waypoints.indexOf(selected);
+            let behind = waypoints[i-1];
+            let front = waypoints[i+1];
+
+            if (behind) {
+                behind.heading = Waypoint.calcHeading(behind, selected);
+                this.onWaypointChanged(behind, i-1);
+            }
+            
+            if (front) {
+                selected.heading = Waypoint.calcHeading(selected, front);
+                this.onWaypointChanged(selected, i);
+                if (i+1 == waypoints.length - 1) {
+                    front.heading = selected.heading;
+                    this.onWaypointChanged(front, i+1);
+                }
+            }
+            else if (behind) {
+                selected.heading = behind.heading;
+                this.onWaypointChanged(selected, i);
+            }
+
+            this.selected = null;
+            this.drawWaypoints();
         }
-        this.selected = null;
-        this.drawWaypoints();
     },
     /*
      * Adds a waypoint to the field
