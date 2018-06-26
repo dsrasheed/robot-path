@@ -205,19 +205,19 @@ Object.assign(Field.prototype, {
         this.wpLayer.scene.clear();
         this.wpLayer.hit.clear();
         for (let i = 0; i < waypoints.length; i++) {
-            let waypoint = waypoints[i], x = waypoint.x, y = waypoint.y;
+            let waypoint = waypoints[i], x = waypoint.x, y = Field.height - waypoint.y;
 
             // draw connecting line
             if (waypoints.length - 1 - i != 0) {
                 sceneCtx.beginPath();
                 sceneCtx.moveTo(x,y);
-                sceneCtx.lineTo(waypoints[i+1].x, waypoints[i+1].y);
+                sceneCtx.lineTo(waypoints[i+1].x, Field.height - waypoints[i+1].y);
                 sceneCtx.lineWidth = 38;
                 sceneCtx.strokeStyle = 'rgba(255,255,255,0.6)';
                 sceneCtx.stroke();
                 sceneCtx.beginPath();
                 sceneCtx.moveTo(x,y);
-                sceneCtx.lineTo(waypoints[i+1].x, waypoints[i+1].y);
+                sceneCtx.lineTo(waypoints[i+1].x, Field.height - waypoints[i+1].y);
                 sceneCtx.lineWidth = 2;
                 sceneCtx.strokeStyle = 'white';
                 sceneCtx.stroke();
@@ -263,7 +263,7 @@ Object.assign(Field.prototype, {
         // create a new waypoint since click was on an empty spot
         else {
             if (this.mode === 'change') {
-                waypoint = new Waypoint(x,y);
+                waypoint = new Waypoint(x,Field.height - y);
                 this.selected = waypoint;
                 this.add(waypoint);
             }
@@ -278,7 +278,7 @@ Object.assign(Field.prototype, {
         if (selected != null) {
             let x, y, index;
             x = Math.round(evt.offsetX / this.scaleRatio);
-            y = Math.round(evt.offsetY / this.scaleRatio);
+            y = Field.height - Math.round(evt.offsetY / this.scaleRatio);
             selected.x = x;
             selected.y = y;
             this.drawWaypoints();
@@ -298,12 +298,12 @@ Object.assign(Field.prototype, {
             let front = waypoints[i+1];
 
             if (behind) {
-                behind.heading = Waypoint.calcHeading(behind, selected);
+                behind.heading = behind.calcHeading(selected);
                 this.onWaypointChanged(behind, i-1);
             }
             
             if (front) {
-                selected.heading = Waypoint.calcHeading(selected, front);
+                selected.heading = selected.calcHeading(front);
                 this.onWaypointChanged(selected, i);
                 if (i+1 == waypoints.length - 1) {
                     front.heading = selected.heading;
@@ -339,7 +339,7 @@ Object.assign(Field.prototype, {
         heading = 0;
         if (waypoints.length > 1) {
             let prevPoint = waypoints[waypoints.length - 2];
-            heading = Waypoint.calcHeading(prevPoint, waypoint);
+            heading = prevPoint.calcHeading(waypoint);
             prevPoint.heading = heading;
             this.onWaypointChanged(prevPoint, waypoints.length - 2);
         }
@@ -387,7 +387,10 @@ function Waypoint(x,y,heading) {
     this.id = Waypoint.idCounter++;
 }
 Waypoint.idCounter = 0;
-Waypoint.calcHeading = function(wp1, wp2) {
-    var rad = Math.atan2(-(wp2.y - wp1.y), wp2.x - wp1.x)
-    return Math.round(rad * 180 / Math.PI);
-}
+
+Object.assign(Waypoint.prototype, {
+    calcHeading(o) {
+        var rad = Math.atan2(o.y - this.y, o.x - this.x);
+        return Math.round(rad * 180 / Math.PI);
+    }
+});
