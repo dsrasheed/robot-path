@@ -34,6 +34,7 @@ class Field {
         this.staticLayer = staticLayer;
         this.waypoints = [];
         this.keyToWaypoint = {};
+        this.robot = new Robot(33,38);
 
         this.mode = 'change';
     }
@@ -271,12 +272,12 @@ class Field {
             let front = waypoints[i+1];
 
             if (behind) {
-                behind.heading = behind.calcHeading(selected);
+                behind.heading = behind.angleWith(selected);
                 this.onWaypointChanged(behind, i-1);
             }
 
             if (front) {
-                selected.heading = selected.calcHeading(front);
+                selected.heading = selected.angleWith(front);
                 if (i+1 == waypoints.length - 1) {
                     front.heading = selected.heading;
                     this.onWaypointChanged(front, i+1);
@@ -308,7 +309,7 @@ class Field {
         heading = 0;
         if (waypoints.length > 1) {
             let prevPoint = waypoints[waypoints.length - 2];
-            heading = prevPoint.calcHeading(waypoint);
+            heading = prevPoint.angleWith(waypoint);
             prevPoint.heading = heading;
             this.onWaypointChanged(prevPoint, waypoints.length - 2);
         }
@@ -358,12 +359,28 @@ class Waypoint {
         this.id = Waypoint.idCounter++;
     }
 
-    calcHeading(o) {
-        var rad = Math.atan2(o.y - this.y, o.x - this.x);
+    angleWith(other) {
+        var rad = Math.atan2(other.y - this.y, other.x - this.x);
         return Math.round(rad * 180 / Math.PI);
     }
 
 }
-
 Waypoint.idCounter = 0;
+
+class Robot {
+    
+    constructor(width, height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    draw(ctx, x, y, angle) {
+        ctx.save();
+        ctx.translate(x,y);
+        ctx.rotate(angle * 180 / Math.PI + Math.PI / 2);
+        ctx.fillStyle = 'rgba(0,140,255,0.6)';
+        ctx.fillRect(-this.width / 2, 0, this.width, this.height);
+        ctx.restore();
+    }
+}
 
