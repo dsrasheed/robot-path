@@ -1,61 +1,43 @@
-/**
- * Field constructor
- * @param {HTMLElement} container - element to contain field
- */
-function Field(container) {
-    var scaleRatio, viewport, staticLayer, wpLayer, sceneCanvas;
+class Field {
 
-    // creation and sizing of the field and its layers
-    scaleRatio = parseFloat(container.getAttribute('scale')) || 1;
-    viewport = new Concrete.Viewport({
-        container: container,
-        width: scaleRatio * Field.width,
-        height: scaleRatio * Field.height
-    });
-    this.scaleRatio = scaleRatio;
+    constructor(container) {
+        var scaleRatio, viewport, staticLayer, wpLayer, sceneCanvas;
 
-    staticLayer = new Concrete.Layer();
-    wpLayer = new Concrete.Layer();
+        // creation and sizing of the field and its layers
+        scaleRatio = parseFloat(container.getAttribute('scale')) || 1;
+        viewport = new Concrete.Viewport({
+            container: container,
+            width: scaleRatio * Field.width,
+            height: scaleRatio * Field.height
+        });
+        this.scaleRatio = scaleRatio;
 
-    viewport.add(staticLayer);
-    viewport.add(wpLayer);
+        staticLayer = new Concrete.Layer();
+        wpLayer = new Concrete.Layer();
 
-    staticLayer.scene.context.scale(scaleRatio, scaleRatio);
-    wpLayer.scene.context.scale(scaleRatio, scaleRatio);
+        viewport.add(staticLayer);
+        viewport.add(wpLayer);
 
-    // event handlers
-    sceneCanvas = viewport.scene.canvas;  
-    sceneCanvas.addEventListener('mousedown', this.onMouseDown.bind(this));
-    sceneCanvas.addEventListener('mousemove', this.onMouseMove.bind(this));
-    sceneCanvas.addEventListener('mouseup', this.onMouseUp.bind(this));
-    sceneCanvas.addEventListener('mouseleave', this.onMouseUp.bind(this));
+        staticLayer.scene.context.scale(scaleRatio, scaleRatio);
+        wpLayer.scene.context.scale(scaleRatio, scaleRatio);
+
+        // event handlers
+        sceneCanvas = viewport.scene.canvas;  
+        sceneCanvas.addEventListener('mousedown', this.onMouseDown.bind(this));
+        sceneCanvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+        sceneCanvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+        sceneCanvas.addEventListener('mouseleave', this.onMouseUp.bind(this));
     
-    // bind to object
-    this.viewport = viewport;
-    this.wpLayer = wpLayer;
-    this.staticLayer = staticLayer;
-    this.waypoints = [];
-    this.keyToWaypoint = {};
+        // bind to object
+        this.viewport = viewport;
+        this.wpLayer = wpLayer;
+        this.staticLayer = staticLayer;
+        this.waypoints = [];
+        this.keyToWaypoint = {};
 
-    this.mode = 'change';
-}
+        this.mode = 'change';
+    }
 
-Object.defineProperty(Field, 'width', {
-    writable: false,
-    configurable: false,
-    value: 648
-});
-
-Object.defineProperty(Field, 'height', {
-    writable: false,
-    configurable: false,
-    value: 324
-});
-
-Object.assign(Field.prototype, {
-    /*
-     * Draw the static elements of the field
-     */
     draw() {
         var ctx = this.staticLayer.scene.context;
 
@@ -164,7 +146,7 @@ Object.assign(Field.prototype, {
         ctx.fillStyle = 'blue';
         ctx.fillRect(324,97,63,130);
         ctx.restore();
-        
+
         // draw scale
         ctx.save();
         // scale platform
@@ -180,7 +162,7 @@ Object.assign(Field.prototype, {
         ctx.fillStyle = 'rgb(168,175,194)';
         ctx.fillRect(318,106,12,112)
         ctx.restore();
-        
+
         // draw platform zone cubes
         ctx.save();
         ctx.beginPath();
@@ -193,10 +175,8 @@ Object.assign(Field.prototype, {
         ctx.restore();
 
         this.viewport.render();
-    },
-    /*
-     * Draw the waypoints on the field
-     */
+    }
+
     drawWaypoints() {
         var waypoints = this.waypoints,
             sceneCtx = this.wpLayer.scene.context,
@@ -209,15 +189,17 @@ Object.assign(Field.prototype, {
 
             // draw connecting line
             if (waypoints.length - 1 - i != 0) {
+                let nextX = waypoints[i+1].x,
+                    nextY = Field.height - waypoints[i+1].y;
                 sceneCtx.beginPath();
                 sceneCtx.moveTo(x,y);
-                sceneCtx.lineTo(waypoints[i+1].x, Field.height - waypoints[i+1].y);
+                sceneCtx.lineTo(nextX, nextY);
                 sceneCtx.lineWidth = 38;
                 sceneCtx.strokeStyle = 'rgba(255,255,255,0.6)';
                 sceneCtx.stroke();
                 sceneCtx.beginPath();
                 sceneCtx.moveTo(x,y);
-                sceneCtx.lineTo(waypoints[i+1].x, Field.height - waypoints[i+1].y);
+                sceneCtx.lineTo(nextX, nextY);
                 sceneCtx.lineWidth = 2;
                 sceneCtx.strokeStyle = 'white';
                 sceneCtx.stroke();
@@ -237,14 +219,11 @@ Object.assign(Field.prototype, {
             hitCtx.fill();
         }
         this.viewport.render();
-    },
-    /*
-     * Handles mouse down, selects or creates a waypoint
-     * @param {MouseEvent} evt
-     */
+    }
+
     onMouseDown(evt) {
         var x, y, key, waypoint;
-        
+
         x = Math.round(evt.offsetX / this.scaleRatio);
         y = Math.round(evt.offsetY / this.scaleRatio);
 
@@ -259,7 +238,7 @@ Object.assign(Field.prototype, {
             }
             else if (this.mode === 'delete')
                 this.remove(waypoint);
-        } 
+        }
         // create a new waypoint since click was on an empty spot
         else {
             if (this.mode === 'change') {
@@ -268,26 +247,20 @@ Object.assign(Field.prototype, {
                 this.add(waypoint);
             }
         }
-    },
-    /*
-     * Handles mouse move, drags a selected waypoint
-     * @param {MouseEvent} evt
-     */
+    }
+
     onMouseMove(evt) {
         var selected = this.selected;
         if (selected != null) {
             let x, y, index;
             x = Math.round(evt.offsetX / this.scaleRatio);
-            y = Field.height - Math.round(evt.offsetY / this.scaleRatio);
+            y = Math.round(evt.offsetY / this.scaleRatio);
             selected.x = x;
-            selected.y = y;
+            selected.y = Field.height - y;
             this.drawWaypoints();
         }
-    },
-    /*
-     * Handles mouse up, deselects a selected waypoint
-     * @param {MouseEvent} evt
-     */
+    }
+
     onMouseUp(evt) {
         var selected = this.selected,
             waypoints = this.waypoints;
@@ -301,10 +274,9 @@ Object.assign(Field.prototype, {
                 behind.heading = behind.calcHeading(selected);
                 this.onWaypointChanged(behind, i-1);
             }
-            
+
             if (front) {
                 selected.heading = selected.calcHeading(front);
-                this.onWaypointChanged(selected, i);
                 if (i+1 == waypoints.length - 1) {
                     front.heading = selected.heading;
                     this.onWaypointChanged(front, i+1);
@@ -312,23 +284,20 @@ Object.assign(Field.prototype, {
             }
             else if (behind) {
                 selected.heading = behind.heading;
-                this.onWaypointChanged(selected, i);
             }
 
             this.selected = null;
             this.drawWaypoints();
+            this.onWaypointChanged(selected, i);
         }
-    },
-    /*
-     * Adds a waypoint to the field
-     * @param {Waypoint} waypoint - the waypoint to add
-     */
+    }
+
     add(waypoint) {
         var key = waypoint.id,
             hit = this.wpLayer.hit,
             waypoints = this.waypoints,
             heading;
-        
+
         hit.registerKey(key);
         waypoint.hitColor = hit.getColorFromKey(key);
         this.keyToWaypoint[key] = waypoint;
@@ -346,24 +315,19 @@ Object.assign(Field.prototype, {
         waypoint.heading = heading;
 
         this.onWaypointAdded(waypoint);
-    },
-    /*
-     * Removes a waypoint
-     * @param {Waypoint} waypoint - the waypoint to remove
-     */
+    }
+
     remove(waypoint) {
         var waypoints = this.waypoints, i
 
         i = waypoints.indexOf(waypoint);
         if (i != -1) {
             waypoints.splice(i,1);
-            this.drawWaypoints();            
+            this.drawWaypoints();
             this.onWaypointRemoved(i);
         }
-    },
-    /*
-     * Deletes all waypoints
-     */
+    }
+
     clear() {
         for (let i = this.waypoints.length - 1; i >= 0; i--)
             this.onWaypointRemoved(i);
@@ -371,26 +335,35 @@ Object.assign(Field.prototype, {
         this.drawWaypoints();
     }
 
+};
+
+Object.defineProperty(Field, 'width', {
+    writable: false,
+    configurable: false,
+    value: 648
 });
 
+Object.defineProperty(Field, 'height', {
+    writable: false,
+    configurable: false,
+    value: 324
+});
 
-/*
- * Waypoint constructor
- * @param {Number} x - x position of point
- * @param {Number} y - y position of point
- * @param {Number} heading - heading of point
- */
-function Waypoint(x,y,heading) {
-    this.x = x;
-    this.y = y;
-    this.heading = heading;
-    this.id = Waypoint.idCounter++;
-}
-Waypoint.idCounter = 0;
+class Waypoint {
 
-Object.assign(Waypoint.prototype, {
+    constructor(x,y,heading) {
+        this.x = x;
+        this.y = y;
+        this.heading = heading;
+        this.id = Waypoint.idCounter++;
+    }
+
     calcHeading(o) {
         var rad = Math.atan2(o.y - this.y, o.x - this.x);
         return Math.round(rad * 180 / Math.PI);
     }
-});
+
+}
+
+Waypoint.idCounter = 0;
+

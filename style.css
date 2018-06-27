@@ -10,9 +10,18 @@ body {
     font-family: "Lato";
     overflow-y: scroll;
 }
+input[name="title"] {
+    display: block;
+    margin: 20px auto;
+    font-size: 2em;
+    text-align: center;
+    outline: none;
+    border: none;
+    border-bottom: 1px solid rgb(230,230,230);
+}
 #field-container {
     display: inline-block;
-    margin: 40px auto 0;
+    margin: auto;
 }
 #field {
     display: inline-block;
@@ -69,6 +78,18 @@ input[type="radio"] {
 }
 .field-controls > button:hover {
     background-color: rgb(240,60,60);
+}
+#import-btn {
+    position: relative;
+}
+#import-btn input[type="file"] {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
 }
 table#wp-table {
     margin: 20px auto;
